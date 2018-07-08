@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Июл 07 2018 г., 13:02
+-- Время создания: Июл 08 2018 г., 18:33
 -- Версия сервера: 10.1.33-MariaDB
 -- Версия PHP: 7.2.6
 
@@ -28,6 +28,16 @@ DELIMITER $$
 --
 -- Процедуры
 --
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_log` (IN `inputResult` VARCHAR(255))  NO SQL
+INSERT INTO model_new_2(result) VALUES (inputResult)$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_past_log` (IN `inputRes` VARCHAR(255), IN `inputInd` VARCHAR(255))  NO SQL
+BEGIN
+SET @id = 0;
+SELECT id INTO @id FROM model_new WHERE indexs = inputInd;
+INSERT INTO model_new_2(id, result) VALUES(@id, inputRes);
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_model` (IN `time` VARCHAR(128) CHARSET utf8, IN `levelname` VARCHAR(128) CHARSET utf8, IN `CoefficientsOfX` VARCHAR(128) CHARSET utf8, IN `freeCoefficients` VARCHAR(256) CHARSET utf8, IN `result` VARCHAR(128) CHARSET utf8)  NO SQL
 INSERT into model_new_2(time, levelname, message, freeCoefficients, result ) VALUES(time, levelname, CoefficientsOfX, freeCoefficients, result)$$
 
@@ -44,7 +54,8 @@ DELIMITER ;
 
 CREATE TABLE `model_new` (
   `indexs` varchar(128) NOT NULL,
-  `sv` varchar(128) NOT NULL
+  `sv` varchar(128) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -54,10 +65,7 @@ CREATE TABLE `model_new` (
 --
 
 CREATE TABLE `model_new_2` (
-  `time` varchar(128) NOT NULL,
-  `levelname` varchar(128) NOT NULL,
-  `message` varchar(128) NOT NULL,
-  `freeCoefficients` varchar(128) NOT NULL,
+  `id` int(128) NOT NULL,
   `result` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -69,6 +77,8 @@ CREATE TABLE `model_new_2` (
 -- Индексы таблицы `model_new`
 --
 ALTER TABLE `model_new`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `indexs_3` (`indexs`),
   ADD KEY `indexs` (`indexs`,`sv`),
   ADD KEY `sv` (`sv`),
   ADD KEY `indexs_2` (`indexs`,`sv`);
@@ -77,8 +87,33 @@ ALTER TABLE `model_new`
 -- Индексы таблицы `model_new_2`
 --
 ALTER TABLE `model_new_2`
-  ADD KEY `time` (`time`,`levelname`,`message`,`freeCoefficients`,`result`),
-  ADD KEY `time_2` (`time`,`levelname`,`message`,`freeCoefficients`,`result`);
+  ADD KEY `time_2` (`id`,`result`);
+
+--
+-- AUTO_INCREMENT для сохранённых таблиц
+--
+
+--
+-- AUTO_INCREMENT для таблицы `model_new`
+--
+ALTER TABLE `model_new`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `model_new_2`
+--
+ALTER TABLE `model_new_2`
+  MODIFY `id` int(128) NOT NULL AUTO_INCREMENT;
+
+--
+-- Ограничения внешнего ключа сохраненных таблиц
+--
+
+--
+-- Ограничения внешнего ключа таблицы `model_new_2`
+--
+ALTER TABLE `model_new_2`
+  ADD CONSTRAINT `model_new_2_ibfk_1` FOREIGN KEY (`id`) REFERENCES `model_new` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
